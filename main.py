@@ -6,7 +6,8 @@ Thursday 26 November 2026 (10 detailed stories + 20 briefs + numbers box),
 as a 1024x1024 PNG, using only the Python 3.13 standard library.
 
 No network, no randomness, no timestamps: two runs produce byte-identical
-output. Writes entry.png next to this script.
+output. Writes entry.png to MAKEFUN_OUTPUT_DIR if set, else to /output if
+that directory exists, else next to this script.
 """
 
 import os
@@ -363,11 +364,26 @@ def write_png(path, c):
         f.write(png)
 
 
+def _output_dir():
+    """Directory for entry.png.
+
+    The grading sandbox mounts the repository read-only, so writing next
+    to this script fails there; it writes to /output instead (via
+    MAKEFUN_OUTPUT_DIR). Priority: the MAKEFUN_OUTPUT_DIR environment
+    variable, then /output if it exists, then this script's directory.
+    """
+    env_dir = os.environ.get("MAKEFUN_OUTPUT_DIR")
+    if env_dir:
+        return env_dir
+    if os.path.isdir("/output"):
+        return "/output"
+    return os.path.dirname(os.path.abspath(__file__))
+
+
 def main():
-    here = os.path.dirname(os.path.abspath(__file__))
     canvas = Canvas(W, H, PAPER)
     draw(canvas)
-    write_png(os.path.join(here, "entry.png"), canvas)
+    write_png(os.path.join(_output_dir(), "entry.png"), canvas)
 
 
 if __name__ == "__main__":
